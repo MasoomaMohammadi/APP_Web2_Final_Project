@@ -1,14 +1,11 @@
 let saveLists = [];
 
 function add() {
-  console.log("running add function");
-
   const textInput = document.querySelector("#input-text");
   const list = document.querySelector("#Lists");
 
   if (!isValidated(textInput.value.trim(), list.value)) {
-    console.log("Invalid input");
-    return "false";
+    return false;
   }
 
   const newLi = document.createElement("li");
@@ -61,19 +58,30 @@ function add() {
 
   textInput.value = "";
   list.value = "";
+
+  updateLocalStorage(); 
 }
 
 document.querySelector("#ul").addEventListener("click", (m) => {
-  console.log(m.target);
-  if (m.target.tagName === "span" || m.target.tagName === "svg") {
+  if (m.target.tagName === "SPAN" || m.target.tagName === "svg") {
     let listItem = m.target.parentNode;
     listItem.remove();
+    updateLocalStorage();
   }
-  localStorage.setItem("listItem", JSON.stringify(listItem));
 });
 
+function updateLocalStorage() {
+  saveLists = [];
+  const listItems = document.querySelectorAll("#ul li");
+  listItems.forEach((item) => {
+    const text = item.querySelector("span:nth-child(2)").textContent;
+    const category = item.querySelector("span:last-child").textContent; 
+    saveLists.push({ text, category });
+  });
+  localStorage.setItem("list", JSON.stringify(saveLists));
+}
+
 function isValidated(textInput, list) {
-  console.log("running isValidated function");
   let isValid = false;
 
   if (textInput !== "" && list !== "") {
@@ -91,33 +99,14 @@ function isValidated(textInput, list) {
   return isValid;
 }
 
-function updateLocalStorage() {
-  const listItems = document.querySelectorAll("#ul li");
-  listItems.forEach((item) => {
-    const text = item.querySelector("span:first-child").textContent;
-    const catagory = document.querySelector("span:last-child").textContent;
-    saveLists.push({ text, catagory });
-  });
-  localStorage.setItem("list", JSON.stringify(saveLists));
-}
-
-document.querySelector("#btn").addEventListener("click", function (m) {
-  m.preventDefault();
-  add();
-});
-
 window.addEventListener("load", () => {
-  const saveLists = JSON.parse(localStorage.getItem("list")) || [];
-  saveLists.forEach((item) => {
+  const savedLists = JSON.parse(localStorage.getItem("list")) || [];
+  savedLists.forEach((item) => {
     const newLi = document.createElement("li");
     newLi.className = "flex gap-2 text-xl";
 
-    const textInput = document.querySelector("#input-text");
-    const list = document.querySelector("#Lists");
-
     const ul = document.querySelector("#ul");
     ul.appendChild(newLi);
-
     const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
     svg.setAttribute("xmlns", "http://www.w3.org/2000/svg");
     svg.setAttribute("viewBox", "0 0 24 24");
@@ -138,10 +127,10 @@ window.addEventListener("load", () => {
     newLi.appendChild(textSpan);
 
     const listSpan = document.createElement("span");
-    listSpan.textContent = item.catagory;
+    listSpan.textContent = item.category;
     listSpan.className = "rounded-lg p-2 text-xs text-white";
 
-    switch (list.value) {
+    switch (item.category) {
       case "React":
         listSpan.classList.add("bg-blue-400");
         break;
@@ -160,4 +149,9 @@ window.addEventListener("load", () => {
 
     newLi.appendChild(listSpan);
   });
+});
+
+document.querySelector("#btn").addEventListener("click", function (m) {
+  m.preventDefault();
+  add();
 });
